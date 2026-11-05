@@ -22,8 +22,6 @@ DAV1D_REV = '3060ebf8dd26952579373084984daf70a54f5368'
 ZLIB_REV = '925af44f3cde53c6b076611c297850091b5dc7bb'
 
 
-
-
 def run(*command, **kwargs):
     subprocess.run(list(command), check=True, **kwargs)
 
@@ -49,7 +47,7 @@ def main():
     shutil.copy2(zlib_source / 'README', zlib_notice / 'README')
     (TOOLS / 'zlib-build.json').write_text(json.dumps(dict(source=zlib_url, source_sha256=zlib_sha,
         revision=ZLIB_REV, build='MSVC shared'), indent=2))
-    dav_archive = TOOLS / 'dav1d-1.5.1.tar.gz' 
+    dav_archive = TOOLS / 'dav1d-1.5.1.tar.gz'
     dav_url = f'https://codeload.github.com/videolan/dav1d/tar.gz/{DAV1D_REV}'
     dav_sha = fetch(dav_url, dav_archive)
     with tarfile.open(dav_archive) as package:

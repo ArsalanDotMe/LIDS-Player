@@ -11,7 +11,7 @@ On Debian or Ubuntu, install the system dependencies:
 ```sh
 sudo apt-get update
 sudo apt-get install -y git build-essential pkg-config ffmpeg tesseract-ocr \
-  tesseract-ocr-eng libegl1 libopengl0 libxcb-cursor0 libxkbcommon-x11-0 libpulse0
+  tesseract-ocr-eng libegl1 libopengl0 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxkbcommon-x11-0 libpulse0
 ```
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:

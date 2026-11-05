@@ -27,7 +27,7 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install Linux runtime
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y xvfb libegl1 libopengl0 libxcb-cursor0 libxkbcommon-x11-0 libpulse0 ffmpeg tesseract-ocr
+        run: sudo apt-get update && sudo apt-get install -y xvfb libegl1 libopengl0 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxkbcommon-x11-0 libpulse0 ffmpeg tesseract-ocr
       - name: Install macOS runtime
         if: runner.os == 'macOS'
         run: brew install ffmpeg tesseract
@@ -41,6 +41,12 @@ jobs:
       - name: Test source app
         if: runner.os != 'Linux'
         run: uv run --no-sync pytest -q --ignore=tests/test_formats.py
+      - name: Check Linux Qt runtime
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          ldd .venv/lib/python3.12/site-packages/PySide6/Qt/plugins/platforms/libqxcb.so | tee /tmp/qt-libraries.txt
+          if grep -q 'not found' /tmp/qt-libraries.txt; then exit 1; fi
       - name: Test Linux source app
         if: runner.os == 'Linux'
         run: xvfb-run -a uv run --no-sync pytest -q --ignore=tests/test_formats.py
