@@ -33,9 +33,9 @@ for name in ('ffmpeg-9.0.1.tar.xz', 'qt-ffmpeg-build.json'):
         raise SystemExit('Run scripts/build_qt_ffmpeg.py before packaging: missing ' + name)
     data.append((str(source), 'third_party/sources'))
 if sys.platform == 'win32':
-    for directory in (root / '.tools/ffmpeg/bin', root / '.tools/dav1d/bin'):
+    for directory in (root / '.tools/ffmpeg/bin', root / '.tools/dav1d/bin', root / '.tools/zlib/bin'):
         tool_binaries += [(str(dll), 'llplayer/bin') for dll in directory.glob('*.dll')]
-    for name in ('dav1d-1.5.1.tar.gz', 'dav1d-build.json'):
+    for name in ('dav1d-1.5.1.tar.gz', 'dav1d-build.json', 'zlib-1.3.1.tar.gz', 'zlib-build.json'):
         data.append((str(root / '.tools' / name), 'third_party/sources'))
 analysis = Analysis([str(root / 'run.py')], pathex=[str(root)],
     binaries=ct_binaries + ja_binaries + tool_binaries + [(ffmpeg, 'llplayer/bin')], datas=data,

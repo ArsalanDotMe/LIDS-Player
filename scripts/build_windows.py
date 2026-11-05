@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / '.tools'
 # Annotated dav1d 1.5.1 tag, pinned rather than following a moving branch.
 DAV1D_REV = '3060ebf8dd26952579373084984daf70a54f5368'
+ZLIB_REV = '925af44f3cde53c6b076611c297850091b5dc7bb'
 
 
 
@@ -31,7 +32,24 @@ def main():
     if sys.platform != 'win32':
         raise SystemExit('Run this recipe on Windows in the release toolchain.')
     TOOLS.mkdir(exist_ok=True)
-    dav_archive = TOOLS / 'dav1d-1.5.1.tar.gz'
+    zlib_archive = TOOLS / 'zlib-1.3.1.tar.gz'
+    zlib_url = f'https://codeload.github.com/madler/zlib/tar.gz/{ZLIB_REV}'
+    zlib_sha = fetch(zlib_url, zlib_archive)
+    with tarfile.open(zlib_archive) as package:
+        package.extractall(TOOLS, filter='data')
+    zlib_source = TOOLS / ('zlib-' + ZLIB_REV)
+    zlib_prefix = TOOLS / 'zlib'
+    run('cmake', '-S', str(zlib_source), '-B', str(TOOLS / 'zlib-build'), '-A', 'x64',
+        '-DCMAKE_INSTALL_PREFIX=' + str(zlib_prefix), '-DZLIB_BUILD_EXAMPLES=OFF')
+    run('cmake', '--build', str(TOOLS / 'zlib-build'), '--config', 'Release', '--target', 'install', '-j', '4')
+    # FFmpeg's MSVC configure probe asks for z.lib.
+    shutil.copy2(zlib_prefix / 'lib/zlib.lib', zlib_prefix / 'lib/z.lib')
+    zlib_notice = ROOT / 'third_party/licenses/zlib-native'
+    zlib_notice.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(zlib_source / 'README', zlib_notice / 'README')
+    (TOOLS / 'zlib-build.json').write_text(json.dumps(dict(source=zlib_url, source_sha256=zlib_sha,
+        revision=ZLIB_REV, build='MSVC shared'), indent=2))
+    dav_archive = TOOLS / 'dav1d-1.5.1.tar.gz' 
     dav_url = f'https://codeload.github.com/videolan/dav1d/tar.gz/{DAV1D_REV}'
     dav_sha = fetch(dav_url, dav_archive)
     with tarfile.open(dav_archive) as package:
@@ -39,7 +57,7 @@ def main():
     dav_source = TOOLS / ('dav1d-' + DAV1D_REV)
     dav_prefix = TOOLS / 'dav1d'
     run('uv', 'tool', 'run', '--from', 'meson', '--with', 'ninja', 'meson', 'setup',
-        str(TOOLS / 'dav1d-build'), str(dav_source), '--prefix', str(dav_prefix),
+        str(TOOLS / 'dav1d-build'), str(dav_source), *(['--reconfigure'] if (TOOLS / 'dav1d-build/build.ninja').exists() else []), '--prefix', str(dav_prefix),
         '--buildtype=release', '--default-library=shared', '-Denable_tools=false', '-Denable_tests=false')
     run('uv', 'tool', 'run', '--from', 'meson', '--with', 'ninja', 'meson', 'compile', '-C', str(TOOLS / 'dav1d-build'))
     run('uv', 'tool', 'run', '--from', 'meson', '--with', 'ninja', 'meson', 'install', '-C', str(TOOLS / 'dav1d-build'))
@@ -51,7 +69,7 @@ def main():
     # MSYS bash supplies configure/make, while cl/link are the Visual Studio tools.
     bash = os.environ.get('LLPLAYER_MSYS_BASH', r'C:\msys64\usr\bin\bash.exe')
     env = dict(os.environ)
-    env['PATH'] = str(dav_prefix / 'bin') + os.pathsep + env['PATH']
+    env['PATH'] = str(dav_prefix / 'bin') + os.pathsep + str(zlib_prefix / 'bin') + os.pathsep + env['PATH']
     env['PKG_CONFIG_PATH'] = str(dav_prefix / 'lib/pkgconfig')
     env['MSYS2_PATH_TYPE'] = 'inherit'
     for version, url, sha, name in ((AV_VERSION, AV_URL, AV_SHA, 'ffmpeg'),
@@ -66,7 +84,9 @@ def main():
                  f'--prefix={prefix.as_posix()}', '--enable-shared', '--disable-static',
                  '--disable-autodetect', '--disable-gpl', '--disable-nonfree',
                  '--disable-doc', '--disable-debug', '--enable-schannel',
-                 '--enable-mediafoundation', '--enable-d3d11va', '--enable-dxva2']
+                 '--enable-mediafoundation', '--enable-d3d11va', '--enable-dxva2', '--enable-zlib',
+                 '--extra-cflags=-I' + (zlib_prefix / 'include').as_posix(),
+                 '--extra-ldflags=-LIBPATH:' + (zlib_prefix / 'lib').as_posix()]
         if name == 'qt-ffmpeg':
             flags += ['--disable-programs', '--disable-avdevice', '--disable-avfilter',
                       '--enable-libdav1d', '--disable-decoder=av1']
@@ -79,6 +99,8 @@ def main():
         destination.mkdir(parents=True, exist_ok=True)
         for dll in (prefix / 'bin').glob('*.dll'):
             shutil.copy2(dll, destination)
+        for dll in (zlib_prefix / 'bin').glob('*.dll'):
+            shutil.copy2(dll, destination)
         if name == 'qt-ffmpeg':
             for dll in (dav_prefix / 'bin').glob('*.dll'):
                 shutil.copy2(dll, destination)
@@ -88,8 +110,9 @@ def main():
     env['PATH'] = str(av_prefix / 'bin') + os.pathsep + env['PATH']
     run('uv', 'pip', 'install', '--no-binary', 'av', '--reinstall-package', 'av', 'av==16.1.0', env=env)
     # Reinstallation removes package-local DLLs. Restore only our checked build.
-    for dll in (av_prefix / 'bin').glob('*.dll'):
-        shutil.copy2(dll, ROOT / '.venv/Lib/site-packages/av')
+    for directory in (av_prefix / 'bin', zlib_prefix / 'bin'):
+        for dll in directory.glob('*.dll'):
+            shutil.copy2(dll, ROOT / '.venv/Lib/site-packages/av')
     qt_notice = ROOT / 'third_party/licenses/ffmpeg-qt'
     qt_notice.mkdir(parents=True, exist_ok=True)
     for filename in ('COPYING.LGPLv2.1', 'COPYING.LGPLv3', 'LICENSE.md'):
