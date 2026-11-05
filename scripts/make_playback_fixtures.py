@@ -24,6 +24,9 @@ def main():
                   hevc='hevc_videotoolbox' if sys.platform == 'darwin' else 'libx265',
                   vp8='libvpx', vp9='libvpx-vp9', av1='libsvtav1',
                   theora='libtheora', flv1='flv')
+    available = subprocess.check_output([encoder, '-hide_banner', '-encoders'], text=True, stderr=subprocess.STDOUT)
+    if 'libsvtav1' not in available and 'libaom-av1' in available:
+        codecs['av1'] = 'libaom-av1'
     for name, video, audio in CASES:
         ten_bit = '10bit' in name or name.startswith('hevc10')
         pixel_format = 'yuv420p10le' if ten_bit else 'yuv420p'
@@ -39,7 +42,8 @@ def main():
             if ten_bit:
                 extra += ['-profile:v', '2']
         if video == 'av1':
-            extra += ['-preset', '12', '-crf', '45']
+            extra += (['-cpu-used', '8', '-crf', '45', '-b:v', '0']
+                      if codecs['av1'] == 'libaom-av1' else ['-preset', '12', '-crf', '45'])
         if video == 'mpeg2video':
             extra += ['-b:v', '800k']
         audio_encoder = dict(opus='libopus', vorbis='libvorbis', mp3='libmp3lame').get(audio, audio)
