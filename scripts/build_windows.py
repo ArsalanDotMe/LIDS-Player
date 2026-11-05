@@ -38,10 +38,9 @@ def main():
     zlib_source = TOOLS / ('zlib-' + ZLIB_REV)
     zlib_prefix = TOOLS / 'zlib'
     run('cmake', '-S', str(zlib_source), '-B', str(TOOLS / 'zlib-build'), '-A', 'x64',
-        '-DCMAKE_INSTALL_PREFIX=' + str(zlib_prefix), '-DZLIB_BUILD_EXAMPLES=OFF')
+        '-DCMAKE_INSTALL_PREFIX=' + str(zlib_prefix), '-DZLIB_BUILD_EXAMPLES=OFF',
+        '-DCMAKE_POLICY_VERSION_MINIMUM=3.5')
     run('cmake', '--build', str(TOOLS / 'zlib-build'), '--config', 'Release', '--target', 'install', '-j', '4')
-    # FFmpeg's MSVC configure probe asks for z.lib.
-    shutil.copy2(zlib_prefix / 'lib/zlib.lib', zlib_prefix / 'lib/z.lib')
     zlib_notice = ROOT / 'third_party/licenses/zlib-native'
     zlib_notice.mkdir(parents=True, exist_ok=True)
     shutil.copy2(zlib_source / 'README', zlib_notice / 'README')
@@ -84,7 +83,7 @@ def main():
                  '--disable-doc', '--disable-debug', '--enable-schannel',
                  '--enable-mediafoundation', '--enable-d3d11va', '--enable-dxva2', '--enable-zlib',
                  '--extra-cflags=-I' + (zlib_prefix / 'include').as_posix(),
-                 '--extra-ldflags=-LIBPATH:' + (zlib_prefix / 'lib').as_posix()]
+                 '--extra-ldflags=-L' + (zlib_prefix / 'lib').as_posix()]
         if name == 'qt-ffmpeg':
             flags += ['--disable-programs', '--disable-avdevice', '--disable-avfilter',
                       '--enable-libdav1d', '--disable-decoder=av1']
