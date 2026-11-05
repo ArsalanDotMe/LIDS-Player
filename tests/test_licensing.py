@@ -2,6 +2,7 @@
 from pathlib import Path
 import importlib.util
 import sys
+import os
 from types import SimpleNamespace
 import pytest
 
@@ -42,7 +43,8 @@ def test_build_rejects_unknown_executable_license(builder, monkeypatch, tmp_path
         builder.main()
 
 
-@pytest.mark.skipif(sys.platform == 'win32', reason='Windows native packaging remains gated')
+@pytest.mark.skipif(not os.environ.get('LLPLAYER_REQUIRE_NATIVE_BUILD'),
+                    reason='Custom native-library checks run in release builds')
 def test_qt_ffmpeg_includes_common_format_decoders_and_demuxers(builder):
     from check_licenses import inspect_native_libraries
     reports = inspect_native_libraries()['libraries']

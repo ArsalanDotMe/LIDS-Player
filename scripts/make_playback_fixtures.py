@@ -32,7 +32,7 @@ def main():
         pixel_format = 'yuv420p10le' if ten_bit else 'yuv420p'
         if video == 'prores':
             pixel_format = 'yuv422p10le'
-        extra = []
+        extra = ['-g', '24'] if video in ('h264', 'hevc') else []
         if video in ('h264', 'hevc') and sys.platform == 'darwin':
             extra += ['-allow_sw', '1']
         if video == 'hevc' and name.endswith('.mp4'):

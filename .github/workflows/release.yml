@@ -75,10 +75,12 @@ jobs:
       - name: Run release tests
         env:
           LLPLAYER_REQUIRE_FORMAT_FIXTURES: '1'
+          LLPLAYER_REQUIRE_NATIVE_BUILD: '1'
         run: uv run --no-sync pytest -q
       - name: Check software decoding
         env:
           LLPLAYER_REQUIRE_FORMAT_FIXTURES: '1'
+          LLPLAYER_REQUIRE_NATIVE_BUILD: '1'
           QT_FFMPEG_DECODING_HW_DEVICE_TYPES: ','
         run: uv run --no-sync pytest -q tests/test_formats.py
       - name: Package native app
