@@ -68,6 +68,8 @@ def main():
     env = dict(os.environ)
     env['PATH'] = str(dav_prefix / 'bin') + os.pathsep + str(zlib_prefix / 'bin') + os.pathsep + env['PATH']
     env['PKG_CONFIG_PATH'] = str(dav_prefix / 'lib/pkgconfig')
+    for variable, folder in (('INCLUDE', 'include'), ('LIB', 'lib')):
+        env[variable] = os.pathsep.join(str(prefix / folder) for prefix in (zlib_prefix, dav_prefix)) + os.pathsep + env.get(variable, '')
     env['MSYS2_PATH_TYPE'] = 'inherit'
     for version, url, sha, name in ((AV_VERSION, AV_URL, AV_SHA, 'ffmpeg'),
                                     (QT_VERSION, QT_URL, QT_SHA, 'qt-ffmpeg')):
@@ -81,15 +83,19 @@ def main():
                  f'--prefix={prefix.as_posix()}', '--enable-shared', '--disable-static',
                  '--disable-autodetect', '--disable-gpl', '--disable-nonfree',
                  '--disable-doc', '--disable-debug', '--enable-schannel',
-                 '--enable-mediafoundation', '--enable-d3d11va', '--enable-dxva2', '--enable-zlib',
-                 '--extra-cflags=-I' + (zlib_prefix / 'include').as_posix(),
-                 '--extra-ldflags=-L' + (zlib_prefix / 'lib').as_posix()]
+                 '--enable-mediafoundation', '--enable-d3d11va', '--enable-dxva2', '--enable-zlib']
         if name == 'qt-ffmpeg':
             flags += ['--disable-programs', '--disable-avdevice', '--disable-avfilter',
                       '--enable-libdav1d', '--disable-decoder=av1']
         import shlex
         command = 'export PATH="/usr/bin:$PATH"; ./configure ' + shlex.join(flags) + ' && make -j4 && make install'
-        run(bash, '-c', command, cwd=source, env=env)
+        try:
+            run(bash, '-c', command, cwd=source, env=env)
+        except subprocess.CalledProcessError:
+            log = source / 'ffbuild/config.log'
+            if log.exists():
+                print(log.read_text(errors='replace')[-24000:], flush=True)
+            raise
         (TOOLS / (name + '-build.json')).write_text(json.dumps(dict(version=version, source=url,
             source_sha256=sha, configure=flags, platform=sys.platform), indent=2))
         destination = ROOT / '.venv/Lib/site-packages' / ('av' if name == 'ffmpeg' else 'PySide6')

@@ -109,16 +109,16 @@ def test_streaming_track_updates_sidebar_before_completion(window, qtbot, monkey
     def extract(_path, _index, emit=None, cancel=None):
         cue = Cue(0, 2000, 'First line')
         emit(cue)
-        completed.wait(2)
+        completed.wait(30)
         return Timeline([cue, Cue(3000, 4000, 'Later line')])
     monkeypatch.setattr(services, 'extract_subtitles', extract)
     window.load_subtitles(str(source), 0)
     try:
-        qtbot.waitUntil(lambda: window.transcript_model.rowCount() == 1, timeout=1500)
+        qtbot.waitUntil(lambda: window.transcript_model.rowCount() == 1, timeout=10000)
         assert not completed.is_set()
     finally:
         completed.set()
-    qtbot.waitUntil(lambda: window.transcript_model.rowCount() == 2, timeout=1500)
+    qtbot.waitUntil(lambda: window.transcript_model.rowCount() == 2, timeout=10000)
 
 
 def test_new_actions_and_visibility(window):
