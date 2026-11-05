@@ -127,7 +127,7 @@ def main():
             shutil.copy2(dll, destination)
     av_prefix = TOOLS / 'ffmpeg'
     env['INCLUDE'] = str(av_prefix / 'include') + os.pathsep + env.get('INCLUDE', '')
-    env['LIB'] = str(av_prefix / 'lib') + os.pathsep + env.get('LIB', '')
+    env['LIB'] = os.pathsep.join(str(av_prefix / folder) for folder in ('bin', 'lib')) + os.pathsep + env.get('LIB', '')
     env['PATH'] = str(av_prefix / 'bin') + os.pathsep + env['PATH']
     run('uv', 'pip', 'install', '--no-binary', 'av', '--reinstall-package', 'av', 'av==16.1.0', env=env)
     # Reinstallation removes package-local DLLs. Restore only our checked build.
