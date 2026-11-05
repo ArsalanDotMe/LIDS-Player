@@ -69,7 +69,7 @@ class Timeline:
                 if decoded is None:
                     raise ValueError('Could not detect subtitle encoding; choose one in Settings.')
                 text = str(decoded)
-        subs = pysubs2.SSAFile.from_string(text, fps=fps or 25)
+        subs = pysubs2.SSAFile.from_string(text.replace("\r\n", "\n").replace("\r", "\n"), fps=fps or 25)
         from .subtitle_text import styled_ass
         return cls(Cue(s.start, s.end, s.plaintext, markup=styled_ass(s.text)) for s in subs if not s.is_comment)
 

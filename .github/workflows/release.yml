@@ -1,0 +1,143 @@
+name: Preview release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  package:
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            platform: macOS-arm64
+            executable: dist/LIDS Player.app/Contents/MacOS/LIDS Player
+          - os: windows-2022
+            platform: Windows-x64
+            executable: dist/LIDS Player/LIDS Player.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install macOS build tools
+        if: runner.os == 'macOS'
+        run: brew install tesseract pkg-config dav1d ffmpeg
+      - name: Activate Visual Studio x64 toolchain
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Install Windows build tools
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          location: C:\msys64
+          msystem: MSYS
+          update: true
+          install: make diffutils pkgconf nasm
+      - name: Prefer Microsoft linker
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: mv /usr/bin/link.exe /usr/bin/link-msys.exe
+      - name: Install Windows fixture encoder
+        if: runner.os == 'Windows'
+        run: choco install ffmpeg --yes --no-progress
+      - run: uv sync --python 3.12.13 --extra asr --extra dev --locked
+      - name: Build Windows native dependencies
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:PATH = "C:\msys64\usr\bin;" + $env:PATH
+          uv run --no-sync python scripts/build_windows.py
+      - name: Build macOS native dependencies
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          uv run --no-sync python scripts/build_lgpl_ffmpeg.py
+          uv run --no-sync python scripts/build_qt_ffmpeg.py
+          PKG_CONFIG_PATH="$PWD/.tools/ffmpeg/lib/pkgconfig" uv pip install --python .venv/bin/python --no-binary av --reinstall-package av 'av==16.1.0'
+          uv run --no-sync python scripts/build_tools.py
+      - run: uv run --no-sync python scripts/make_assets.py
+      - run: uv run --no-sync python scripts/make_fixture.py
+      - run: uv run --no-sync python scripts/make_bitmap_fixture.py
+      - name: Generate common playback fixtures
+        shell: bash
+        run: LLPLAYER_FIXTURE_FFMPEG=ffmpeg uv run --no-sync python scripts/make_playback_fixtures.py
+      - name: Run release tests
+        env:
+          LLPLAYER_REQUIRE_FORMAT_FIXTURES: '1'
+        run: uv run --no-sync pytest -q
+      - name: Check software decoding
+        env:
+          LLPLAYER_REQUIRE_FORMAT_FIXTURES: '1'
+          QT_FFMPEG_DECODING_HW_DEVICE_TYPES: ','
+        run: uv run --no-sync pytest -q tests/test_formats.py
+      - name: Package native app
+        run: uv run --no-sync python scripts/build.py
+      - name: Verify packaged playback
+        run: uv run --no-sync python scripts/verify_playback_formats.py "${{ matrix.executable }}"
+      - name: Archive macOS app
+        if: runner.os == 'macOS'
+        run: ditto -c -k --sequesterRsrc --keepParent "dist/LIDS Player.app" LIDS-Player-macOS-arm64.zip
+      - name: Archive Windows app
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path "dist/LIDS Player/*" -DestinationPath LIDS-Player-Windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LIDS-Player-${{ matrix.platform }}
+          path: LIDS-Player-${{ matrix.platform }}.zip
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playback-evidence-${{ matrix.platform }}
+          path: artifacts/format-smoke/
+          retention-days: 7
+  sources:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv run --python 3.12.13 --no-project python scripts/release_sources.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LGPL-sources
+          path: release-sources/LGPL-sources.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [package, sources]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: LIDS-Player-*
+          path: packages
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: LGPL-sources
+          path: packages
+      - name: Publish early release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          cd packages
+          sha256sum * > SHA256SUMS.txt
+          gh release create "$GITHUB_REF_NAME" * --verify-tag --prerelease --title "LIDS Player $GITHUB_REF_NAME" --notes-file ../docs/release-notes.md

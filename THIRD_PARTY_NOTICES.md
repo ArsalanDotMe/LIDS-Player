@@ -73,9 +73,10 @@ MIT-only artifact. In particular:
   must also be assessed.
 - Supply the exact corresponding source and build materials required by the
   LGPL versions and distribution method you choose. The custom FFmpeg source
-  archive and recipe are included in the local bundle. Matching Qt/PySide,
-  Qt's FFmpeg, and other LGPL source delivery must be arranged before publishing.
-  Links to upstream homepages alone are not a complete compliance plan.
+  archive and recipe are included in the local bundle. Matching Qt/PySide/Shiboken source is supplied in the release asset
+  `LGPL-sources.tar.gz`. Custom FFmpeg source and build manifests accompany
+  each app in `third_party/sources`, with dav1d source in the Windows build.
+  The release commit contains the packaging scripts.
 - Re-audit the actual artifacts for each operating system and dependency update.
   macOS findings do not clear Windows or Linux wheels.
 

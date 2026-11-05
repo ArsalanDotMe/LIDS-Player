@@ -1,5 +1,6 @@
 """Reject unsupported native codec configurations before packaging."""
 import ctypes
+import os
 from pathlib import Path
 import sys
 
@@ -26,6 +27,9 @@ def missing_demuxers(codec_path, major):
 
 
 def inspect_avcodec(path):
+    handles = []
+    if sys.platform == 'win32':
+        handles.append(os.add_dll_directory(str(path.resolve().parent)))
     library = ctypes.CDLL(str(path.resolve()))
     library.avcodec_license.restype = ctypes.c_char_p
     library.avcodec_configuration.restype = ctypes.c_char_p

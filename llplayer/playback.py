@@ -41,7 +41,7 @@ class PlaybackTools(QObject):
         if self.recording:
             self.stop_recording()
         if self.audio_delay or self.external_audio:
-            self.audio_player.setSource(QUrl(self.external_audio) if self.external_audio else source)
+            self.audio_player.setSource((QUrl(self.external_audio) if self.external_audio.startswith(("http://", "https://")) else QUrl.fromLocalFile(str(Path(self.external_audio).resolve()))) if self.external_audio else source)
 
     def set_audio_delay(self, milliseconds):
         self.audio_delay = milliseconds
@@ -49,7 +49,7 @@ class PlaybackTools(QObject):
         if milliseconds or self.external_audio:
             self.window.player.setAudioOutput(None)
             self.audio_player.setAudioOutput(self.window.audio)
-            source = QUrl(self.external_audio) if self.external_audio else self.window.player.source()
+            source = (QUrl(self.external_audio) if self.external_audio.startswith(("http://", "https://")) else QUrl.fromLocalFile(str(Path(self.external_audio).resolve()))) if self.external_audio else self.window.player.source()
             if self.audio_player.source() != source:
                 self.audio_player.setSource(source)
             self.audio_player.setPlaybackRate(self.window.player.playbackRate())

@@ -18,7 +18,7 @@ def test_common_format_playback(qtbot, tmp_path, name, video_codec, audio_codec)
             pytest.fail(f'Missing required format fixture: {name}')
         pytest.skip('Run scripts/make_playback_fixtures.py')
     with av.open(str(source)) as media:
-        assert media.streams.video[0].codec_context.name == {'flv1': 'flv'}.get(video_codec, video_codec)
+        assert media.streams.video[0].codec_context.name in ({'flv1': ('flv',), 'av1': ('av1', 'libdav1d', 'libaom-av1')}.get(video_codec, (video_codec,)))
         assert media.streams.audio[0].codec_context.name in (
             ('mp3', 'mp3float') if audio_codec == 'mp3' else (audio_codec,))
         if '10bit' in name or name.startswith('hevc10'):

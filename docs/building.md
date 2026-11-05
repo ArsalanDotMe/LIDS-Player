@@ -4,7 +4,33 @@ The app uses LGPL Qt/FFmpeg components alongside MIT first-party code. Keep thei
 license notices and use the checked native-library configuration when packaging.
 See [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md) for distribution terms.
 
-## macOS and Linux
+## Linux: build and run from source
+
+On Debian or Ubuntu, install the system dependencies:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y git build-essential pkg-config ffmpeg tesseract-ocr \
+  tesseract-ocr-eng libegl1 libopengl0 libxcb-cursor0 libxkbcommon-x11-0 libpulse0
+```
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
+
+```sh
+git clone https://github.com/ArsalanDotMe/LIDS-Player.git
+cd LIDS-Player
+uv sync --python 3.12.13 --extra asr --extra dev --locked
+uv run --no-sync llplayer
+# Or open a video with two subtitle files:
+uv run --no-sync llplayer /path/to/video.mkv --primary /path/to/first.srt --secondary /path/to/second.srt
+```
+
+Run this from a desktop session. Set `LLPLAYER_FFMPEG` if FFmpeg is outside PATH.
+The stock dependencies are enough to run from source. The steps below prepare
+custom native libraries for packaging; they aren't needed for ordinary use.
+There is no Linux binary in the early release.
+
+## macOS and Linux native packaging
 
 Install Python 3.12, uv, a C/C++ compiler, make, pkg-config and dav1d development files.
 Linux also needs zlib and GnuTLS development headers, and nasm on x86. macOS uses the system
@@ -13,7 +39,7 @@ Secure Transport framework. Install Tesseract and the native dependencies (`brew
 From the repository root:
 
 ```sh
-uv sync --python 3.12 --extra asr --extra dev --locked
+uv sync --python 3.12.13 --extra asr --extra dev --locked
 uv run --no-sync python scripts/make_assets.py
 uv run --no-sync python scripts/build_lgpl_ffmpeg.py
 uv run --no-sync python scripts/build_qt_ffmpeg.py
@@ -46,9 +72,19 @@ terms still need to meet the same requirements.
 
 ## Windows
 
-The Python app and source tests support Windows. Native packaging is held until
-compatible Windows LGPL FFmpeg/PyAV inputs are prepared and checked. The POSIX
-FFmpeg build recipe does not build Windows binaries.
+Source runs require Python 3.12, uv, and FFmpeg on PATH:
+
+```powershell
+uv sync --python 3.12.13 --extra asr --extra dev --locked
+uv run --no-sync llplayer
+```
+
+For release packaging, the Windows workflow builds LGPL FFmpeg and dav1d from
+source with Visual Studio Build Tools and MSYS2, rebuilds PyAV against those
+libraries, checks the collected libraries, and verifies the packaged player.
+See `.github/workflows/release.yml` for the complete toolchain and commands.
+The early Windows build uses faster-whisper for speech recognition. Tesseract
+and whisper.cpp can be configured separately in Settings.
 
 ## Tests
 

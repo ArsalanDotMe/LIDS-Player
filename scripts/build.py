@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--ffmpeg', type=Path, default=ROOT / '.tools/ffmpeg/bin/ffmpeg',
+    parser.add_argument('--ffmpeg', type=Path, default=ROOT / ('.tools/ffmpeg/bin/ffmpeg.exe' if sys.platform == 'win32' else '.tools/ffmpeg/bin/ffmpeg'),
                         help='Audited LGPL-only FFmpeg executable to bundle')
     args = parser.parse_args()
     executable = args.ffmpeg.resolve()

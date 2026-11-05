@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tarfile
 import urllib.request
+from download_source import fetch
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = '8.0.1'
@@ -28,12 +29,7 @@ def main():
     tools = ROOT / '.tools'
     tools.mkdir(exist_ok=True)
     archive = tools / f'ffmpeg-{VERSION}.tar.xz'
-    if not archive.exists():
-        with urllib.request.urlopen(URL, timeout=120) as response, archive.open('wb') as output:
-            while chunk := response.read(1024 * 1024):
-                output.write(chunk)
-    if hashlib.sha256(archive.read_bytes()).hexdigest() != SHA256:
-        raise SystemExit('FFmpeg source archive checksum mismatch')
+    fetch(URL, archive, SHA256)
     source = tools / f'ffmpeg-{VERSION}'
     if not source.exists():
         with tarfile.open(archive) as package:
