@@ -46,7 +46,7 @@ analysis = Analysis([str(root / 'run.py')], pathex=[str(root)],
 # Qt's generic input-context plugin pulls in a GPL-only keyboard even when the
 # application uses none of its APIs. Remove it and unrelated QML/PDF modules.
 def keep(entry):
-    path = entry[0].lower().replace('\\', '/')
+    path = entry[0].lower().replace('\\', '/').replace('qt6', 'qt')
     forbidden = ('virtualkeyboard', 'qtquick', 'qtqml', 'qtpdf', 'libqpdf.', 'qpdf.dll',
                  'qtcharts', 'qtdatavisualization', 'qtgraphs', 'qtquick3d')
     return not any(name in path for name in forbidden)
