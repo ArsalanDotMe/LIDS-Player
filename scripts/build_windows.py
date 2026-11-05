@@ -4,6 +4,7 @@ Run in an x64 Visual Studio environment with MSYS2 make/bash and NASM on PATH.
 No third-party FFmpeg binaries are used.
 """
 import json
+import difflib
 import os
 from pathlib import Path
 import shutil
@@ -37,6 +38,18 @@ def main():
         package.extractall(TOOLS, filter='data')
     zlib_source = TOOLS / ('zlib-' + ZLIB_REV)
     zlib_prefix = TOOLS / 'zlib'
+    # FFmpeg defines HAVE_UNISTD_H to 0 on MSVC. zlib's presence-only
+    # check would still include the POSIX-only header. Distribute the patch.
+    template = zlib_source / 'zconf.h.cmakein'
+    original = template.read_text()
+    patched = original.replace('#ifdef HAVE_UNISTD_H', '#if defined(HAVE_UNISTD_H) && HAVE_UNISTD_H')
+    if patched == original:
+        raise SystemExit('Review zlib header compatibility: expected guard not found.')
+    template.write_text(patched)
+    (TOOLS / 'zlib-ffmpeg-header.patch').write_text(''.join(difflib.unified_diff(
+        original.splitlines(keepends=True), patched.splitlines(keepends=True),
+        fromfile='a/zconf.h.cmakein', tofile='b/zconf.h.cmakein')))
+
     run('cmake', '-S', str(zlib_source), '-B', str(TOOLS / 'zlib-build'), '-A', 'x64',
         '-DCMAKE_INSTALL_PREFIX=' + str(zlib_prefix), '-DZLIB_BUILD_EXAMPLES=OFF',
         '-DCMAKE_POLICY_VERSION_MINIMUM=3.5')
@@ -44,8 +57,9 @@ def main():
     zlib_notice = ROOT / 'third_party/licenses/zlib-native'
     zlib_notice.mkdir(parents=True, exist_ok=True)
     shutil.copy2(zlib_source / 'README', zlib_notice / 'README')
+    (zlib_notice / 'CHANGES.txt').write_text('zconf.h.cmakein: check the value of HAVE_UNISTD_H for FFmpeg/MSVC compatibility. See third_party/sources/zlib-ffmpeg-header.patch.\n')
     (TOOLS / 'zlib-build.json').write_text(json.dumps(dict(source=zlib_url, source_sha256=zlib_sha,
-        revision=ZLIB_REV, build='MSVC shared'), indent=2))
+        revision=ZLIB_REV, build='MSVC shared', patches=['zlib-ffmpeg-header.patch']), indent=2))
     dav_archive = TOOLS / 'dav1d-1.5.1.tar.gz'
     dav_url = f'https://codeload.github.com/videolan/dav1d/tar.gz/{DAV1D_REV}'
     dav_sha = fetch(dav_url, dav_archive)

@@ -62,6 +62,13 @@ jobs:
           fi
           uv run --no-sync python scripts/make_playback_fixtures.py --check-encoders
           echo "LLPLAYER_FIXTURE_FFMPEG=$LLPLAYER_FIXTURE_FFMPEG" >> "$GITHUB_ENV"
+      - name: Restore native compilation
+        id: native-cache
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: .tools
+          key: native-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('uv.lock', 'scripts/build*.py', 'scripts/download_source.py') }}
+          restore-keys: native-${{ runner.os }}-${{ runner.arch }}-
       - name: Build Windows native dependencies
         if: runner.os == 'Windows'
         shell: pwsh
@@ -79,6 +86,12 @@ jobs:
           uv run --no-sync python scripts/build_qt_ffmpeg.py
           PKG_CONFIG_PATH="$PWD/.tools/ffmpeg/lib/pkgconfig" uv pip install --python .venv/bin/python --no-binary av --reinstall-package av 'av==16.1.0'
           uv run --no-sync python scripts/build_tools.py
+      - name: Save native compilation
+        if: always() && steps.native-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .tools
+          key: ${{ steps.native-cache.outputs.cache-primary-key }}
       - run: uv run --no-sync python scripts/make_assets.py
       - run: uv run --no-sync python scripts/make_fixture.py
       - run: uv run --no-sync python scripts/make_bitmap_fixture.py
