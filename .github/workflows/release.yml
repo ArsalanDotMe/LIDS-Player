@@ -30,7 +30,7 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install macOS build tools
         if: runner.os == 'macOS'
-        run: brew install tesseract pkg-config dav1d ffmpeg
+        run: brew install tesseract pkg-config dav1d ffmpeg-full
       - name: Activate Visual Studio x64 toolchain
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
@@ -52,6 +52,16 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install ffmpeg --yes --no-progress
       - run: uv sync --python 3.12.13 --extra asr --extra dev --locked
+      - name: Check fixture encoder before native builds
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            export LLPLAYER_FIXTURE_FFMPEG="$(brew --prefix ffmpeg-full)/bin/ffmpeg"
+          else
+            export LLPLAYER_FIXTURE_FFMPEG=ffmpeg
+          fi
+          uv run --no-sync python scripts/make_playback_fixtures.py --check-encoders
+          echo "LLPLAYER_FIXTURE_FFMPEG=$LLPLAYER_FIXTURE_FFMPEG" >> "$GITHUB_ENV"
       - name: Build Windows native dependencies
         if: runner.os == 'Windows'
         shell: pwsh
@@ -74,7 +84,7 @@ jobs:
       - run: uv run --no-sync python scripts/make_bitmap_fixture.py
       - name: Generate common playback fixtures
         shell: bash
-        run: LLPLAYER_FIXTURE_FFMPEG=ffmpeg uv run --no-sync python scripts/make_playback_fixtures.py
+        run: uv run --no-sync python scripts/make_playback_fixtures.py
       - name: Run release tests
         env:
           LLPLAYER_REQUIRE_FORMAT_FIXTURES: '1'
