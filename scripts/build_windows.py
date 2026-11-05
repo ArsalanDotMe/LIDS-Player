@@ -117,13 +117,14 @@ def main():
             source_sha256=sha, configure=flags, platform=sys.platform), indent=2))
         destination = ROOT / '.venv/Lib/site-packages' / ('av' if name == 'ffmpeg' else 'PySide6')
         destination.mkdir(parents=True, exist_ok=True)
+        dependencies = [zlib_prefix / 'bin']
+        if name == 'qt-ffmpeg':
+            dependencies.append(dav_prefix / 'bin')
+        for directory in dependencies:
+            for dll in directory.glob('*.dll'):
+                shutil.copy2(dll, prefix / 'bin' / dll.name)
         for dll in (prefix / 'bin').glob('*.dll'):
             shutil.copy2(dll, destination)
-        for dll in (zlib_prefix / 'bin').glob('*.dll'):
-            shutil.copy2(dll, destination)
-        if name == 'qt-ffmpeg':
-            for dll in (dav_prefix / 'bin').glob('*.dll'):
-                shutil.copy2(dll, destination)
     av_prefix = TOOLS / 'ffmpeg'
     env['INCLUDE'] = str(av_prefix / 'include') + os.pathsep + env.get('INCLUDE', '')
     env['LIB'] = str(av_prefix / 'lib') + os.pathsep + env.get('LIB', '')
@@ -138,6 +139,8 @@ def main():
     for filename in ('COPYING.LGPLv2.1', 'COPYING.LGPLv3', 'LICENSE.md'):
         shutil.copy2(TOOLS / f'ffmpeg-{QT_VERSION}' / filename, qt_notice / filename)
     run(sys.executable, str(ROOT / 'scripts/check_licenses.py'))
+    # Launch without the build-only dependency PATH to check the utility itself.
+    run(str(av_prefix / 'bin/ffmpeg.exe'), '-version')
 
 
 if __name__ == '__main__':

@@ -100,6 +100,7 @@ jobs:
         run: uv run --no-sync python scripts/make_playback_fixtures.py
       - name: Run release tests
         env:
+          LLPLAYER_FFMPEG: ${{ runner.os == 'Windows' && format('{0}/.tools/ffmpeg/bin/ffmpeg.exe', github.workspace) || '' }}
           LLPLAYER_REQUIRE_FORMAT_FIXTURES: '1'
           LLPLAYER_REQUIRE_NATIVE_BUILD: '1'
         run: uv run --no-sync pytest -q
