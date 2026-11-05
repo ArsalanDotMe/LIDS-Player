@@ -81,7 +81,10 @@ def main():
     bash = os.environ.get('LLPLAYER_MSYS_BASH', r'C:\msys64\usr\bin\bash.exe')
     env = dict(os.environ)
     env['PATH'] = str(dav_prefix / 'bin') + os.pathsep + str(zlib_prefix / 'bin') + os.pathsep + env['PATH']
-    env['PKG_CONFIG_PATH'] = str(dav_prefix / 'lib/pkgconfig')
+    # pkgconf is an MSYS program and expects a Unix path list, not a drive colon.
+    env['PKG_CONFIG_PATH'] = subprocess.check_output(
+        [str(Path(bash).with_name('cygpath.exe')), '-u', str(dav_prefix / 'lib/pkgconfig')],
+        text=True).strip()
     for variable, folder in (('INCLUDE', 'include'), ('LIB', 'lib')):
         env[variable] = os.pathsep.join(str(prefix / folder) for prefix in (zlib_prefix, dav_prefix)) + os.pathsep + env.get(variable, '')
     env['MSYS2_PATH_TYPE'] = 'inherit'
