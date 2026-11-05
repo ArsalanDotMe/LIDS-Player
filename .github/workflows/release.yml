@@ -3,10 +3,16 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to verify (tagged releases always build both)
+        type: choice
+        options: [all, windows, macos]
+        default: all
 permissions:
   contents: read
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.ref }}-${{ inputs.platform || 'all' }}
   cancel-in-progress: false
 jobs:
   package:
@@ -14,13 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: macos-15
-            platform: macOS-arm64
-            executable: dist/LIDS Player.app/Contents/MacOS/LIDS Player
-          - os: windows-2022
-            platform: Windows-x64
-            executable: dist/LIDS Player/LIDS Player.exe
+        include: ${{ fromJSON(inputs.platform == 'windows' && '[{"os":"windows-2022","platform":"Windows-x64","executable":"dist/LIDS Player/LIDS Player.exe"}]' || inputs.platform == 'macos' && '[{"os":"macos-15","platform":"macOS-arm64","executable":"dist/LIDS Player.app/Contents/MacOS/LIDS Player"}]' || '[{"os":"macos-15","platform":"macOS-arm64","executable":"dist/LIDS Player.app/Contents/MacOS/LIDS Player"},{"os":"windows-2022","platform":"Windows-x64","executable":"dist/LIDS Player/LIDS Player.exe"}]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -38,9 +38,9 @@ jobs:
           arch: x64
       - name: Install Windows build tools
         if: runner.os == 'Windows'
+        id: msys2
         uses: msys2/setup-msys2@v2
         with:
-          location: C:\msys64
           msystem: MSYS
           update: true
           install: make diffutils pkgconf nasm
@@ -55,8 +55,11 @@ jobs:
       - name: Build Windows native dependencies
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          LLPLAYER_MSYS_ROOT: ${{ steps.msys2.outputs.msys2-location }}
         run: |
-          $env:PATH = "C:\msys64\usr\bin;" + $env:PATH
+          $env:PATH += ";$env:LLPLAYER_MSYS_ROOT\usr\bin"
+          $env:LLPLAYER_MSYS_BASH = "$env:LLPLAYER_MSYS_ROOT\usr\bin\bash.exe"
           uv run --no-sync python scripts/build_windows.py
       - name: Build macOS native dependencies
         if: runner.os == 'macOS'

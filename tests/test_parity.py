@@ -433,7 +433,12 @@ def test_adaptive_video_and_audio_streams(window, qtbot, tmp_path):
     assert window.playback.audio_player.playbackRate() == 1.5
     output = tmp_path / 'audio.wav'
     services.audio_chunk(source, 0, 1, output)
-    assert output.stat().st_size > 32000
+    import wave
+    with wave.open(str(output)) as audio:
+        assert audio.getframerate() == 16000
+        assert audio.getnchannels() == 1
+        assert 0.95 <= audio.getnframes() / audio.getframerate() <= 1.05
+        assert any(audio.readframes(audio.getnframes()))
 
 
 def test_custom_aspect_and_audio_device_settings(window, qtbot):
