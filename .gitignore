@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+/LLPlayer.spec
+artifacts/
+.DS_Store
+.idea/
+.vscode/
+.tools/

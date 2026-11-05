@@ -1,0 +1,3 @@
+https://github.com/ggml-org/whisper.cpp
+Revision: 4da27c41cebadb3cbbcd2563e9c7cbc8d84bdcad
+Unmodified source; Metal enabled on macOS.

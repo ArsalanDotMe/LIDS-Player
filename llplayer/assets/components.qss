@@ -1,0 +1,58 @@
+QWidget { color: @text; font-size: 14px; }
+QMainWindow, QDialog, QWidget#Welcome, QWidget#Controls, QWidget#Titlebar { background: @shell; }
+QWidget#Titlebar, QWidget#TranscriptHead { border-bottom: 1px solid @edge; }
+QLabel, QCheckBox, QDialogButtonBox { background: transparent; }
+QWidget#Transcript, QWidget#TranscriptHead, QWidget#TranscriptFoot { background: @panel; }
+QWidget#TranscriptFoot, QWidget#Controls { border-top: 1px solid @edge; }
+QLabel#Heading { font-size: 20px; font-weight: 650; }
+QLabel#Muted, QLabel#MediaTitle, QLabel#Clock { color: @muted; }
+QLabel#Clock { font-size: 11px; }
+QLabel#Brand { font-size: 13px; font-weight: 650; }
+QLabel#MediaTitle { font-size: 13px; }
+QLabel#Divider { background: @edge; }
+QPushButton { background: #2a3546; border: 1px solid transparent; border-radius: 7px; padding: 6px 12px; min-height: 18px; }
+QPushButton:hover { background: #344257; }
+QPushButton:pressed { background: #405169; }
+QPushButton[variant="tool"], QPushButton[variant="quiet"] { background: transparent; padding: 3px 7px; }
+QPushButton[variant="tool"]:hover, QPushButton[variant="quiet"]:hover { background: #283344; }
+QPushButton:checked, QPushButton[variant="tool"]:checked { color: @accent; background: @active; }
+QPushButton#PrimaryAction, QDialogButtonBox QPushButton:default { background: @accent; color: #101f33; font-weight: 600; }
+QPushButton#play { background: @text; border: none; min-width: 42px; max-width: 42px; min-height: 42px; max-height: 42px; border-radius: 21px; padding: 0; }
+QPushButton#play:hover { background: white; }
+QPushButton::menu-indicator { width: 0px; height: 0px; }
+QPushButton#play:disabled { background: #526079; }
+QPushButton:disabled { color: #8693a7; background: transparent; }
+QLineEdit, QComboBox, QSpinBox { background: #141b27; color: @text; border: 1px solid @edge; border-radius: 7px; min-height: 20px; padding: 6px 10px; selection-background-color: #3e6086; }
+QComboBox, QSpinBox { padding-right: 25px; }
+QComboBox::drop-down { subcontrol-origin: border; subcontrol-position: center right; border: none; width: 26px; }
+QComboBox::down-arrow, QSpinBox::down-arrow { image: url(@assets/chevron-down.svg); width: 12px; height: 12px; }
+QSpinBox::up-arrow { image: url(@assets/chevron-up.svg); width: 12px; height: 12px; }
+QSpinBox::up-button, QSpinBox::down-button { subcontrol-origin: border; width: 22px; border: none; background: transparent; }
+QSpinBox::up-button { subcontrol-position: top right; } QSpinBox::down-button { subcontrol-position: bottom right; }
+QComboBox#TrackFilter { color: @muted; background: transparent; border: 1px solid transparent; padding: 2px 0; font-size: 12px; }
+QComboBox#TrackFilter::down-arrow { width: 0; }
+QComboBox#TrackFilter:hover { color: @text; }
+QCheckBox { spacing: 8px; padding: 4px; }
+QCheckBox::indicator { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #64748a; background: #182131; }
+QCheckBox::indicator:checked { background: @accent; border-color: @accent; image: url(@assets/check.svg); }
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QPushButton:focus, QCheckBox::indicator:focus { border: 1px solid @accent; }
+QListView, QTextBrowser { background: @panel; border: none; outline: none; }
+QListView::item { padding: 8px; } QListView::item:hover { background: #222e40; }
+QListView::item:selected { background: @active; color: @text; }
+QComboBox QAbstractItemView, QMenu { background: #212b3a; border: 1px solid #45536a; border-radius: 8px; padding: 5px; }
+QMenu::item { padding: 6px 26px 6px 10px; border-radius: 4px; }
+QMenu::item:selected { background: @active; }
+QMenu::separator { height: 1px; background: @edge; margin: 4px 8px; }
+QSplitter::handle { background: @edge; }
+QSlider::groove:horizontal { height: 4px; background: #465164; border-radius: 2px; }
+QSlider::sub-page:horizontal { background: @accent; border-radius: 2px; }
+QSlider::handle:horizontal { background: @accent; width: 14px; height: 14px; margin: -5px 0; border-radius: 7px; }
+QScrollArea { border: none; }
+QScrollBar:vertical { width: 7px; background: transparent; margin: 2px 0; }
+QScrollBar::handle:vertical { background: #526078; border-radius: 3px; min-height: 24px; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }
+QToolTip { background: #263247; color: @text; border: 1px solid @edge; padding: 4px; }
+
+QTextBrowser#LookupResult { background: transparent; color: @text; font-size: 16px; padding: 3px 0; }
+QLabel#SectionTitle { font-size: 16px; font-weight: 600; }
