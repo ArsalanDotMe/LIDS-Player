@@ -5,6 +5,7 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+/LIDS-Player-*.dmg
 /LLPlayer.spec
 artifacts/
 .DS_Store

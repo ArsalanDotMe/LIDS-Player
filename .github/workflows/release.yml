@@ -117,13 +117,18 @@ jobs:
       - name: Archive macOS app
         if: runner.os == 'macOS'
         run: ditto -c -k --sequesterRsrc --keepParent "dist/LIDS Player.app" LIDS-Player-macOS-arm64.zip
+      - name: Create macOS DMG
+        if: runner.os == 'macOS'
+        run: uv run --no-sync python scripts/build_dmg.py --output LIDS-Player-macOS-arm64.dmg
       - name: Archive Windows app
         if: runner.os == 'Windows'
         run: Compress-Archive -Path "dist/LIDS Player/*" -DestinationPath LIDS-Player-Windows-x64.zip
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: LIDS-Player-${{ matrix.platform }}
-          path: LIDS-Player-${{ matrix.platform }}.zip
+          path: |
+            LIDS-Player-${{ matrix.platform }}.zip
+            LIDS-Player-${{ matrix.platform }}.dmg
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
@@ -171,6 +176,7 @@ jobs:
         run: |
           cd packages
           test -f LIDS-Player-macOS-arm64.zip
+          test -f LIDS-Player-macOS-arm64.dmg
           test -f LIDS-Player-Windows-x64.zip
           sha256sum * > SHA256SUMS.txt
           gh release create "$GITHUB_REF_NAME" * --verify-tag --prerelease --title "LIDS Player $GITHUB_REF_NAME" --notes-file ../docs/release-notes.md

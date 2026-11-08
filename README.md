@@ -19,7 +19,7 @@ Get the early preview from [GitHub Releases](https://github.com/ArsalanDotMe/LID
 | Platform | How to run |
 | --- | --- |
 | Windows x64 | Extract the Windows ZIP and open `LIDS Player.exe`. Keep the extracted folder together. |
-| macOS Apple Silicon | Extract the macOS ZIP and move `LIDS Player.app` to Applications. The preview is not notarized; you may need to allow it in System Settings → Privacy & Security. |
+| macOS Apple Silicon | Open the DMG and drag `LIDS Player.app` to Applications. A ZIP is also available. The preview is not notarized; you may need to allow it in System Settings → Privacy & Security. |
 | Linux | Follow the [build and run from source guide](docs/building.md#linux-build-and-run-from-source). |
 
 This is an early preview. Expect bugs and changes to settings between releases. Speech models download separately when first used. Translation providers may require an account or API key.

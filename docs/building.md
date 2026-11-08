@@ -52,6 +52,17 @@ uv run --no-sync python scripts/build.py
 The output is `dist/LIDS Player.app` on macOS and `dist/LIDS Player` on Linux. The macOS
 bundle is locally signed, not notarized for public distribution.
 
+To create the macOS installer after building:
+
+```sh
+uv run --no-sync python scripts/build_dmg.py
+```
+
+This creates `LIDS-Player-macOS-arm64.dmg` on Apple Silicon (or
+`LIDS-Player-macOS-x86_64.dmg` on Intel), with the app and an Applications shortcut.
+The script verifies the app signature and disk image. The release workflow uploads
+both the DMG and ZIP for macOS and includes them in tagged GitHub releases.
+
 The FFmpeg recipe disables GPL/nonfree codecs and builds shared libraries. The
 PyAV source build links to those libraries. The packaging checks reject known
 unsupported codec flags and unexpected Qt modules, and include dependency

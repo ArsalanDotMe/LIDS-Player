@@ -4,7 +4,7 @@ Early preview of LIDS Player, a language-learning media player inspired by [umlx
 - Speech subtitle generation, translation, OCR, and SRT export.
 - Native Windows x64 and macOS Apple Silicon builds. Linux users can [build and run from source](https://github.com/ArsalanDotMe/LIDS-Player/blob/main/docs/building.md#linux-build-and-run-from-source).
 
-Download the ZIP for your platform. On Windows, extract the entire folder before opening `LIDS Player.exe`. On macOS, move `LIDS Player.app` to Applications. The macOS preview is ad-hoc signed and is not notarized; macOS may require approval in Privacy & Security. Windows builds are unsigned.
+On macOS, download the DMG, open it, and drag `LIDS Player.app` to Applications. A macOS ZIP is also available. On Windows, download the ZIP and extract the entire folder before opening `LIDS Player.exe`. The macOS preview is ad-hoc signed and is not notarized; macOS may require approval in Privacy & Security. Windows builds are unsigned.
 
 This is an early preview. Settings and behavior may change. Speech models download separately. The Windows build uses faster-whisper; whisper.cpp and Tesseract can be configured separately. Account-backed translation and subtitle providers need your own credentials.
 
