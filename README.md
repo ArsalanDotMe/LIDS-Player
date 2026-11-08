@@ -8,6 +8,10 @@ Learn languages while watching. Play videos with two subtitle tracks, look up wo
 
 LIDS stands for **Language Immersion via Dual Subtitles**. Inspired by [umlx5h/LLPlayer](https://github.com/umlx5h/LLPlayer), this project brings that language-learning workflow to a native cross-platform player.
 
+![LIDS Player playing Sintel with French and English subtitles and a searchable transcript](docs/screenshots/player.png)
+
+*Sintel* © copyright Blender Foundation · [durian.blender.org](https://durian.blender.org/) · [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+
 ## Download
 
 Get the early preview from [GitHub Releases](https://github.com/ArsalanDotMe/LIDS-Player/releases).
@@ -36,6 +40,10 @@ This is an early preview. Expect bugs and changes to settings between releases. 
 2. Open a video or drop one into the window.
 3. Open **Subtitles** to choose, load, find, generate, or translate each track. Shift-drop a subtitle file to load the secondary track.
 4. Click a word to look it up, or use the transcript to search and jump through the dialogue.
+
+<p align="center">
+  <img src="docs/screenshots/subtitles.png" alt="The subtitle picker with separate French and English tracks" width="400">
+</p>
 
 Press **F1** for shortcuts. See the [usage and service setup guide](docs/usage.md) for translation providers, speech models, OCR, and subtitle controls.
 

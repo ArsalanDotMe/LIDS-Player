@@ -81,3 +81,10 @@ MIT-only artifact. In particular:
   macOS findings do not clear Windows or Linux wheels.
 
 No public-distribution legal clearance or patent/trademark clearance is claimed.
+
+## Documentation screenshots
+
+The README screenshots include frames and dialogue from *Sintel*, © copyright
+Blender Foundation | [durian.blender.org](https://durian.blender.org/), licensed
+under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). See the
+[screenshot sources](docs/screenshots/README.md) for media and capture details.
